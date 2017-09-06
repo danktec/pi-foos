@@ -2,10 +2,16 @@ import RPi.GPIO as GPIO
 import time, sys
 
 # Global Vars
-goal_wait_timeout = 1
+goal_wait_timeout = 0.3 # set this below 1 for testing, 3 for real play
 game_in_play = True
 A_goals = 0
 B_goals = 0
+round_1_winners = ""
+round_2_winners = ""
+round_3_winners = ""
+rounds = 3
+round = 1
+
 ## Pin Config
 reset_button_in   = 4
 team_A_trigger_in = 27
@@ -24,7 +30,7 @@ GPIO.setup(team_B_light_out, GPIO.OUT)
 # Light an LED for 1 second
 def light(pin):
     GPIO.output(pin, GPIO.HIGH)
-    time.sleep(1)
+    time.sleep(goal_wait_timeout)
     GPIO.output(pin, GPIO.LOW)
     return
 
@@ -43,16 +49,77 @@ def goal(team):
 
     if (A_goals == 5):
         print("Team A wins")
-        reset_play()
-        return
+        end_round("A")
     if (B_goals == 5):
         print("Team B wins")
-        reset_play()
-        return
-    return
+        end_round("B")
 
-# Reset game play mode
-def reset_play():
+def end_round(winners):
+
+    global round
+    global B_goals
+    global A_goals
+
+    global round_1_winners
+    global round_2_winners
+    global round_3_winners
+
+    A_goals = 0     
+    B_goals = 0
+
+    if (1 == 1):
+
+        if (round == 1):
+            round_1_winners = winners
+        if (round == 2):
+            round_2_winners = winners
+        if (round == 3):
+            round_3_winners = winners
+
+        # Account for all scenarios
+        if (round_1_winners == "A" and round_2_winners == "A"):
+            print("GAME WON by Team A!")
+            reset_game()
+            return
+        if (round_1_winners == "B" and round_2_winners == "B"):
+            print("GAME WON by Team B!")
+            reset_game()
+            return
+        if (round_1_winners == "A" and round_3_winners == "A"):
+            print("GAME WON by Team A!")
+            reset_game()
+            return
+        if (round_1_winners == "B" and round_3_winners == "B"):
+            print("GAME WON by Team B!")
+            reset_game()
+            return
+        if (round_2_winners == "B" and round_3_winners == "B"):
+            print("GAME WON by Team B!")
+            reset_game()
+            return
+        if (round_2_winners == "A" and round_3_winners == "A"):
+            print("GAME WON by Team A!")
+            reset_game()        
+            return
+
+        #print("Winners::")
+        #print(winners)
+        #print(round)
+
+        print("Round won by {}".format(winners))
+    
+        round += 1
+
+    else:
+         print("round limit reached")
+         reset_game()
+
+# Reset the game
+def reset_game():
+    global round
+    global round_1_winners
+    global round_2_winners
+    global round_3_winners
     global game_in_play
     global B_goals
     global A_goals
@@ -61,10 +128,17 @@ def reset_play():
     A_goals = 0
 
     print("Current Game Was Reset")
+    round = 1
+    round_1_winners = ""
+    round_2_winners = ""
+    round_3_winners = ""
     game_in_play = False
+    
 
 # Global Game Loop
 while True:
+    #print("global Loop")
+    #print(game_in_play)
 
     game_reset = GPIO.input(4)
     if (game_reset == False and game_in_play == False):
@@ -76,20 +150,21 @@ while True:
 
     while game_in_play:
         try:
+
             # Game Reset Button
             game_reset = GPIO.input(4)
             if (game_reset == False):
-                reset_play()
+                reset_game()
                 continue
 
             A_input_state = GPIO.input(27)
             B_input_state = GPIO.input(18)
 
             if (A_input_state == False):
-                print("Team A Scored!")
-                light(team_A_light_out)
-                goal("A")
-                time.sleep(goal_wait_timeout)
+               print("Team A Scored!")
+               light(team_A_light_out)
+               goal("A")
+               time.sleep(goal_wait_timeout)
 
             if (B_input_state == False):
                 print("Team B Scored!")
