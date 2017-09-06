@@ -1,5 +1,5 @@
 import RPi.GPIO as GPIO
-import time
+import time, sys
 
 # GPIO Pin Setup
 GPIO.setmode(GPIO.BCM)
@@ -18,10 +18,20 @@ def light(pin):
     return
 
 # Global Vars
+goal_wait_timeout = 1
+
 game_in_play = True
 
 A_goals = 0
 B_goals = 0
+
+## Pin Config
+reset_button_in   = 1
+
+team_A_trigger_in = 1
+team_A_light_out  = 1
+team_B_trigger_in = 1
+team_B_light_out  = 1
 
 def goal(team):
     global game_in_play
@@ -57,7 +67,7 @@ def reset_play():
     print("game was reset")
     game_in_play = False
 
-# Global Loop
+# Game Loop
 while True:
 
     game_reset = GPIO.input(4)
@@ -70,25 +80,35 @@ while True:
 
     while game_in_play:
 
-        # Game Reset Button
-        game_reset = GPIO.input(4)
-        if (game_reset == False):
-            reset_play()
-            continue
+        try:
 
-        A_input_state = GPIO.input(27)
-        B_input_state = GPIO.input(18)
+            # Game Reset Button
+            game_reset = GPIO.input(4)
+            if (game_reset == False):
+                reset_play()
+                continue
 
-        if (A_input_state == False):
-            print("Team A Scored")
-            light(22)
-            goal("A")
-            time.sleep(1)
+            A_input_state = GPIO.input(27)
+            B_input_state = GPIO.input(18)
 
-        if (B_input_state == False):
-            print("Team B Scored")
-            light(23)
-            goal("B")
-            time.sleep(1)
+            if (A_input_state == False):
+                print("Team A Scored")
+                light(22)
+                goal("A")
+                time.sleep(goal_wait_timeout)
+
+            if (B_input_state == False):
+                print("Team B Scored")
+                light(23)
+                goal("B")
+                time.sleep(goal_wait_timeout)
+
+	# Handle SIGINT
+        except KeyboardInterrupt:
+
+            GPIO.cleanup()
+            print("Bye")
+            sys.exit()
+
 
 
