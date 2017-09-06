@@ -67,6 +67,7 @@ def end_round(winners):
     A_goals = 0     
     B_goals = 0
 
+    # Enforce rounds?
     if (1 == 1):
 
         if (round == 1):
@@ -107,9 +108,7 @@ def end_round(winners):
         #print(round)
 
         print("Round won by {}".format(winners))
-    
         round += 1
-
     else:
          print("round limit reached")
          reset_game()
@@ -140,7 +139,7 @@ while True:
     #print("global Loop")
     #print(game_in_play)
 
-    game_reset = GPIO.input(4)
+    game_reset = GPIO.input(reset_button_in)
     if (game_reset == False and game_in_play == False):
         time.sleep(1)
         game_in_play = True
@@ -152,13 +151,13 @@ while True:
         try:
 
             # Game Reset Button
-            game_reset = GPIO.input(4)
+            game_reset = GPIO.input(reset_button_in)
             if (game_reset == False):
                 reset_game()
                 continue
 
-            A_input_state = GPIO.input(27)
-            B_input_state = GPIO.input(18)
+            A_input_state = GPIO.input(team_A_trigger_in)
+            B_input_state = GPIO.input(team_B_trigger_in)
 
             if (A_input_state == False):
                print("Team A Scored!")
