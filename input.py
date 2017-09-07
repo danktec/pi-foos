@@ -147,6 +147,7 @@ def notify_api_goal(team, round):
 
 # Global Game Loop
 while True:
+    global game_uuid
 
     if (debug_mode == True):
         print("global Loop")
@@ -159,7 +160,6 @@ while True:
 
     if (game_in_play == True):
         print("New Game Started...")
-        global game_uuid
         game_uuid = str(uuid.uuid4())
         print("Generating new game UUID... {}".format(game_uuid))
 
