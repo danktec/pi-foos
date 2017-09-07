@@ -101,13 +101,14 @@ def end_round(winners):
         return
     if (round_2_winners == "A" and round_3_winners == "A"):
         print("GAME WON by Team A!")
-        reset_game()        
+        reset_game()
         return
 
     print("Round won by {}".format(winners))
-    round += 1
-
+    
     notify_api(round, winners)
+
+    round += 1
 
     if (debug_mode == True):
         print("Winners are ::")
@@ -136,7 +137,7 @@ def reset_game():
     game_in_play = False
 
 # Post information to a remote endpoint
-def notify_api(round, winners):
+def notify_api(round, winners, type):
     print("Sending info to API: round: {}".format(round))
     print("Winners: {}".format(winners))
 
