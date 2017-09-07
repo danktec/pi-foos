@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import RPi.GPIO as GPIO
 import time, sys
 
@@ -11,6 +13,7 @@ round_2_winners = ""
 round_3_winners = ""
 rounds = 3
 round = 1
+debug_mode = False
 
 ## Pin Config
 reset_button_in   = 4
@@ -21,11 +24,11 @@ team_B_light_out  = 23
 
 # GPIO Pin Setup
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(reset_button_in, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(reset_button_in,   GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(team_A_trigger_in, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(team_B_trigger_in, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(team_A_light_out, GPIO.OUT)
-GPIO.setup(team_B_light_out, GPIO.OUT)
+GPIO.setup(team_A_light_out,  GPIO.OUT)
+GPIO.setup(team_B_light_out,  GPIO.OUT)
 
 # Light an LED for 1 second
 def light(pin):
@@ -54,8 +57,8 @@ def goal(team):
         print("Team B wins")
         end_round("B")
 
+# When a round ends
 def end_round(winners):
-
     global round
     global B_goals
     global A_goals
@@ -67,51 +70,50 @@ def end_round(winners):
     A_goals = 0     
     B_goals = 0
 
-    # Enforce rounds?
-    if (1 == 1):
+    # Tally round outcomes
+    if (round == 1):
+        round_1_winners = winners
+    if (round == 2):
+        round_2_winners = winners
+    if (round == 3):
+        round_3_winners = winners
 
-        if (round == 1):
-            round_1_winners = winners
-        if (round == 2):
-            round_2_winners = winners
-        if (round == 3):
-            round_3_winners = winners
+    # Account for all possible scenarios
+    if (round_1_winners == "A" and round_2_winners == "A"):
+        print("GAME WON by Team A!")
+        reset_game()
+        return
+    if (round_1_winners == "B" and round_2_winners == "B"):
+        print("GAME WON by Team B!")
+        reset_game()
+        return
+    if (round_1_winners == "A" and round_3_winners == "A"):
+        print("GAME WON by Team A!")
+        reset_game()
+        return
+    if (round_1_winners == "B" and round_3_winners == "B"):
+        print("GAME WON by Team B!")
+        reset_game()
+        return
+    if (round_2_winners == "B" and round_3_winners == "B"):
+        print("GAME WON by Team B!")
+        reset_game()
+        return
+    if (round_2_winners == "A" and round_3_winners == "A"):
+        print("GAME WON by Team A!")
+        reset_game()        
+        return
 
-        # Account for all scenarios
-        if (round_1_winners == "A" and round_2_winners == "A"):
-            print("GAME WON by Team A!")
-            reset_game()
-            return
-        if (round_1_winners == "B" and round_2_winners == "B"):
-            print("GAME WON by Team B!")
-            reset_game()
-            return
-        if (round_1_winners == "A" and round_3_winners == "A"):
-            print("GAME WON by Team A!")
-            reset_game()
-            return
-        if (round_1_winners == "B" and round_3_winners == "B"):
-            print("GAME WON by Team B!")
-            reset_game()
-            return
-        if (round_2_winners == "B" and round_3_winners == "B"):
-            print("GAME WON by Team B!")
-            reset_game()
-            return
-        if (round_2_winners == "A" and round_3_winners == "A"):
-            print("GAME WON by Team A!")
-            reset_game()        
-            return
+    print("Round won by {}".format(winners))
+    round += 1
 
-        #print("Winners::")
-        #print(winners)
-        #print(round)
+    notify_api(round, winners)
 
-        print("Round won by {}".format(winners))
-        round += 1
-    else:
-         print("round limit reached")
-         reset_game()
+    if (debug_mode == True):
+        print("Winners are ::")
+        print(winners)
+        print("Round is ::")
+        print(round)
 
 # Reset the game
 def reset_game():
@@ -132,12 +134,17 @@ def reset_game():
     round_2_winners = ""
     round_3_winners = ""
     game_in_play = False
-    
+
+# Post information to a remote endpoint
+def notify_api(round, winners):
+    print("Sending info to API: round:".format(round)." winners".format(winners))
 
 # Global Game Loop
 while True:
-    #print("global Loop")
-    #print(game_in_play)
+
+    if (debug_mode == True):
+        print("global Loop")
+        print(game_in_play)
 
     game_reset = GPIO.input(reset_button_in)
     if (game_reset == False and game_in_play == False):
@@ -149,7 +156,6 @@ while True:
 
     while game_in_play:
         try:
-
             # Game Reset Button
             game_reset = GPIO.input(reset_button_in)
             if (game_reset == False):
