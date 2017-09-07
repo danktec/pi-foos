@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import RPi.GPIO as GPIO
-import time, sys
+import time, sys, uuid
 
 # Global Vars
 goal_wait_timeout = 0.3 # set this below 1 for testing, 3 for real play
@@ -13,6 +13,7 @@ round_2_winners = ""
 round_3_winners = ""
 rounds = 3
 round = 1
+game_uuid = ""
 debug_mode = False
 
 ## Pin Config
@@ -78,41 +79,36 @@ def end_round(winners):
     if (round == 3):
         round_3_winners = winners
 
+    # Tell the API who won the round
+    notify_api_round(round, winners)
+
     # Account for all possible scenarios
     if (round_1_winners == "A" and round_2_winners == "A"):
         print("GAME WON by Team A!")
-        notify_api(round, winners)
         reset_game()
         return
     if (round_1_winners == "B" and round_2_winners == "B"):
         print("GAME WON by Team B!")
-        notify_api(round, winners)
         reset_game()
         return
     if (round_1_winners == "A" and round_3_winners == "A"):
         print("GAME WON by Team A!")
-        notify_api(round, winners)
         reset_game()
         return
     if (round_1_winners == "B" and round_3_winners == "B"):
         print("GAME WON by Team B!")
-        notify_api(round, winners)
         reset_game()
         return
     if (round_2_winners == "B" and round_3_winners == "B"):
         print("GAME WON by Team B!")
-        notify_api(round, winners)
         reset_game()
         return
     if (round_2_winners == "A" and round_3_winners == "A"):
         print("GAME WON by Team A!")
-        notify_api(round, winners)
         reset_game()
         return
 
     print("Round won by {}".format(winners))
-    
-    notify_api(round, winners)
 
     round += 1
 
@@ -143,9 +139,11 @@ def reset_game():
     game_in_play = False
 
 # Post information to a remote endpoint
-def notify_api(round, winners):
+def notify_api_round(round, winners):
     print("Sending info to API: round: {}".format(round))
     print("Winners: {}".format(winners))
+
+def notify_api_goal(team, round):
 
 # Global Game Loop
 while True:
@@ -161,6 +159,9 @@ while True:
 
     if (game_in_play == True):
         print("New Game Started...")
+        global game_uuid
+        game_uuid = str(uuid.uuid4())
+        print("Generating new game UUID... {}".format(game_uuid))
 
     while game_in_play:
         try:
