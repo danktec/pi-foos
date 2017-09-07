@@ -81,26 +81,32 @@ def end_round(winners):
     # Account for all possible scenarios
     if (round_1_winners == "A" and round_2_winners == "A"):
         print("GAME WON by Team A!")
+        notify_api(round, winners)
         reset_game()
         return
     if (round_1_winners == "B" and round_2_winners == "B"):
         print("GAME WON by Team B!")
+        notify_api(round, winners)
         reset_game()
         return
     if (round_1_winners == "A" and round_3_winners == "A"):
         print("GAME WON by Team A!")
+        notify_api(round, winners)
         reset_game()
         return
     if (round_1_winners == "B" and round_3_winners == "B"):
         print("GAME WON by Team B!")
+        notify_api(round, winners)
         reset_game()
         return
     if (round_2_winners == "B" and round_3_winners == "B"):
         print("GAME WON by Team B!")
+        notify_api(round, winners)
         reset_game()
         return
     if (round_2_winners == "A" and round_3_winners == "A"):
         print("GAME WON by Team A!")
+        notify_api(round, winners)
         reset_game()
         return
 
