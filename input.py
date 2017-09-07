@@ -137,7 +137,8 @@ def reset_game():
 
 # Post information to a remote endpoint
 def notify_api(round, winners):
-    print("Sending info to API: round:".format(round)." winners".format(winners))
+    print("Sending info to API: round:".format(round))
+    print("Winners: ".format(winners))
 
 # Global Game Loop
 while True:
