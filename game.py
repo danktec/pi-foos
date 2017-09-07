@@ -40,6 +40,7 @@ def light(pin):
 
 # Register a goal for a team
 def goal(team):
+    global game_uuid
     global game_in_play
     global A_goals
     global B_goals
@@ -61,6 +62,7 @@ def goal(team):
 # When a round ends
 def end_round(winners):
     global round
+    global game_uuid
     global B_goals
     global A_goals
 
@@ -80,7 +82,7 @@ def end_round(winners):
         round_3_winners = winners
 
     # Tell the API who won the round
-    notify_api_round(round, winners)
+    notify_api_round(round, winners, game_uuid)
 
     # Account for all possible scenarios
     if (round_1_winners == "A" and round_2_winners == "A"):
@@ -139,12 +141,14 @@ def reset_game():
     game_in_play = False
 
 # Post information to a remote endpoint
-def notify_api_round(round, winners):
+def notify_api_round(round, winners, uuid):
     print("Sending info to API: round: {}".format(round))
     print("Winners: {}".format(winners))
+    print("UUID: {}".format(uuid))
 
-def notify_api_goal(team, round):
-    print("hello")
+def notify_api_goal(team, round, uuid):
+    print("Goal scored team: {}".format(team))
+    print("UUID: {}".format(uuid))
 
 # Global Game Loop
 while True:
@@ -160,6 +164,7 @@ while True:
 
     if (game_in_play == True):
         print("New Game Started...")
+        # Generate a new UUID for the stats server
         global game_uuid
         game_uuid = str(uuid.uuid4())
         print("Generating new game UUID... {}".format(game_uuid))
