@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import RPi.GPIO as GPIO
-import time, sys, uuid
+import time, sys, uuid, requests
 
 # Global Vars
 goal_wait_timeout = 0.3 # set this below 1 for testing, 3 for real play
@@ -22,6 +22,10 @@ team_A_trigger_in = 27
 team_A_light_out  = 22
 team_B_trigger_in = 18
 team_B_light_out  = 23
+
+# Stats Server
+remote_api_url = "http://myserver.com/api/"
+remote_api_key = "777aaa"
 
 # GPIO Pin Setup
 GPIO.setmode(GPIO.BCM)
@@ -146,9 +150,19 @@ def notify_api_round(round, winners, uuid):
     print("Winners: {}".format(winners))
     print("UUID: {}".format(uuid))
 
+    # POST to api
+    data = { "api_key": remote_api_key, "round_uuid": format(uuid), "round": format(round), "winners": format(winners), "event_type": "round" }
+    response = requests.post(remote_api_url, json=data)
+    print response.status_code
+
 def notify_api_goal(team, round, uuid):
     print("Goal scored team: {}".format(team))
     print("UUID: {}".format(uuid))
+
+    # POST to api
+    data = { "api_key": remote_api_key, "round_uuid": format(uuid), "team": format(team), "event_type": "goal"  }
+    response = requests.post(remote_api_url, json=data)
+    print response.status_code
 
 # Global Game Loop
 while True:
