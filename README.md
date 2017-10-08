@@ -13,5 +13,7 @@ Run this in Python 2.7 on a Pi - should be configured to automatically start up 
 
 At the end of a winning round, the game must be reset with the "game reset" button.
 
+Cron should be used to run the update script.
+
 ## TODO
 Init script for automatic service start
