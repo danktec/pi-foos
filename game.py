@@ -37,10 +37,10 @@ def light(pin):
 
 def notify_api_goal(team):
     print("Goal scored team: {}".format(team))
-    print("UUID: {}".format(uuid))
+    print("UUID: {}".format("xxx"))
 
     # POST to api
-    data = { "api_key": remote_api_key, "round_uuid": format(uuid), "team": format(team), "event_type": "goal"  }
+    data = { "api_key": remote_api_key, "team": format(team), "event_type": "goal"  }
     
     try:
         response = requests.post(remote_api_url, json=data)
@@ -65,7 +65,7 @@ while True:
             if (A_input_state == False):
                print("Team A Scored!")
                light(team_A_light_out)
-               notify_api_goal("B")
+               notify_api_goal("A")
                time.sleep(goal_wait_timeout)
 
             if (B_input_state == False):
