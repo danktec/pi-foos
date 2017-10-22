@@ -17,3 +17,4 @@ Cron should be used to run the update script.
 
 ## TODO
 Init script for automatic service start
+ test
