@@ -65,7 +65,7 @@ while True:
             if (A_input_state == False):
                print("Team A Scored!")
                light(team_A_light_out)
-                notify_api_goal("B")
+               notify_api_goal("B")
                time.sleep(goal_wait_timeout)
 
             if (B_input_state == False):
