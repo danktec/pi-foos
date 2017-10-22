@@ -4,15 +4,7 @@ import RPi.GPIO as GPIO
 import time, sys, uuid, requests
 
 # Global Vars
-goal_wait_timeout = 0.3 # set this below 1 for testing, 3 for real play
-game_in_play = True
-A_goals = 0
-B_goals = 0
-round_1_winners = ""
-round_2_winners = ""
-round_3_winners = ""
-rounds = 3
-round = 1
+goal_wait_timeout = 2 # set this below 1 for testing, 3 for real play
 game_uuid = ""
 debug_mode = False
 
@@ -24,7 +16,7 @@ team_B_trigger_in = 18
 team_B_light_out  = 23
 
 # Stats Server
-remote_api_url = "http://myserver.com/api/"
+remote_api_url = "http://foos.works:8080/log/"
 remote_api_key = "777aaa"
 
 # GPIO Pin Setup
@@ -42,172 +34,45 @@ def light(pin):
     GPIO.output(pin, GPIO.LOW)
     return
 
-# Register a goal for a team
-def goal(team):
-    global game_uuid
-    global game_in_play
-    global A_goals
-    global B_goals
-
-    if (team == "A"):
-        A_goals += 1
-        print("Team A has {} goals".format(A_goals))
-    if (team == "B"):
-        B_goals += 1
-        print("Team B has {} goals".format(B_goals))
-
-    if (A_goals == 5):
-        print("Team A wins")
-        end_round("A")
-    if (B_goals == 5):
-        print("Team B wins")
-        end_round("B")
-
-# When a round ends
-def end_round(winners):
-    global round
-    global game_uuid
-    global B_goals
-    global A_goals
-
-    global round_1_winners
-    global round_2_winners
-    global round_3_winners
-
-    A_goals = 0     
-    B_goals = 0
-
-    # Tally round outcomes
-    if (round == 1):
-        round_1_winners = winners
-    if (round == 2):
-        round_2_winners = winners
-    if (round == 3):
-        round_3_winners = winners
-
-    # Tell the API who won the round
-    notify_api_round(round, winners, game_uuid)
-
-    # Account for all possible scenarios
-    if (round_1_winners == "A" and round_2_winners == "A"):
-        print("GAME WON by Team A!")
-        reset_game()
-        return
-    if (round_1_winners == "B" and round_2_winners == "B"):
-        print("GAME WON by Team B!")
-        reset_game()
-        return
-    if (round_1_winners == "A" and round_3_winners == "A"):
-        print("GAME WON by Team A!")
-        reset_game()
-        return
-    if (round_1_winners == "B" and round_3_winners == "B"):
-        print("GAME WON by Team B!")
-        reset_game()
-        return
-    if (round_2_winners == "B" and round_3_winners == "B"):
-        print("GAME WON by Team B!")
-        reset_game()
-        return
-    if (round_2_winners == "A" and round_3_winners == "A"):
-        print("GAME WON by Team A!")
-        reset_game()
-        return
-
-    print("Round won by {}".format(winners))
-
-    round += 1
-
-    if (debug_mode == True):
-        print("Winners are ::")
-        print(winners)
-        print("Round is ::")
-        print(round)
-
-# Reset the game
-def reset_game():
-    global round
-    global round_1_winners
-    global round_2_winners
-    global round_3_winners
-    global game_in_play
-    global B_goals
-    global A_goals
-
-    B_goals = 0
-    A_goals = 0
-
-    print("Current Game Was Reset")
-    round = 1
-    round_1_winners = ""
-    round_2_winners = ""
-    round_3_winners = ""
-    game_in_play = False
-
-# Post information to a remote endpoint
-def notify_api_round(round, winners, uuid):
-    print("Sending info to API: round: {}".format(round))
-    print("Winners: {}".format(winners))
-    print("UUID: {}".format(uuid))
-
-    # POST to api
-    data = { "api_key": remote_api_key, "round_uuid": format(uuid), "round": format(round), "winners": format(winners), "event_type": "round" }
-    response = requests.post(remote_api_url, json=data)
-    print response.status_code
-
-def notify_api_goal(team, round, uuid):
+def notify_api_goal(team):
     print("Goal scored team: {}".format(team))
-    print("UUID: {}".format(uuid))
+    print("UUID: {}".format("xxx"))
 
     # POST to api
-    data = { "api_key": remote_api_key, "round_uuid": format(uuid), "team": format(team), "event_type": "goal"  }
-    response = requests.post(remote_api_url, json=data)
-    print response.status_code
+    data = { "api_key": remote_api_key, "team": format(team), "event_type": "goal"  }
+    
+    try:
+        response = requests.post(remote_api_url, json=data)
+        print response.status_code
+    except:
+        pass
 
 # Global Game Loop
 while True:
+    try:
+        # Game Reset Button
+        game_reset = GPIO.input(reset_button_in)
+        if (game_reset == False):
+            reset_game()
+            continue
 
-    if (debug_mode == True):
-        print("global Loop")
-        print(game_in_play)
+        A_input_state = GPIO.input(team_A_trigger_in)
+        B_input_state = GPIO.input(team_B_trigger_in)
 
-    game_reset = GPIO.input(reset_button_in)
-    if (game_reset == False and game_in_play == False):
-        time.sleep(1)
-        game_in_play = True
+        if (A_input_state == False):
+           print("YELLOW Team Scored!")
+           light(team_A_light_out)
+           notify_api_goal("YELLOW")
+           time.sleep(goal_wait_timeout)
 
-    if (game_in_play == True):
-        print("New Game Started...")
-        # Generate a new UUID for the stats server
-        global game_uuid
-        game_uuid = str(uuid.uuid4())
-        print("Generating new game UUID... {}".format(game_uuid))
+        if (B_input_state == False):
+            print("BLACK Team Scored!")
+            light(team_B_light_out)
+            notify_api_goal("BLACK")
+            time.sleep(goal_wait_timeout)
 
-    while game_in_play:
-        try:
-            # Game Reset Button
-            game_reset = GPIO.input(reset_button_in)
-            if (game_reset == False):
-                reset_game()
-                continue
-
-            A_input_state = GPIO.input(team_A_trigger_in)
-            B_input_state = GPIO.input(team_B_trigger_in)
-
-            if (A_input_state == False):
-               print("Team A Scored!")
-               light(team_A_light_out)
-               goal("A")
-               time.sleep(goal_wait_timeout)
-
-            if (B_input_state == False):
-                print("Team B Scored!")
-                light(team_B_light_out)
-                goal("B")
-                time.sleep(goal_wait_timeout)
-
-	# Handle SIGINT
-        except KeyboardInterrupt:
-            GPIO.cleanup()
-            print("Bye")
-            sys.exit()
+    # Handle SIGINT
+    except KeyboardInterrupt:
+        GPIO.cleanup()
+        print("Bye")
+        sys.exit()
