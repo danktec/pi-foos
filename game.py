@@ -4,10 +4,9 @@ import RPi.GPIO as GPIO
 import time, sys, uuid, requests
 
 # Global Vars
-goal_wait_timeout = 0.3 # set this below 1 for testing, 3 for real play
+goal_wait_timeout = 2 # set this below 1 for testing, 3 for real play
 game_uuid = ""
 debug_mode = False
-game_in_play = True
 
 ## Pin Config
 reset_button_in   = 4
@@ -50,32 +49,30 @@ def notify_api_goal(team):
 
 # Global Game Loop
 while True:
+    try:
+        # Game Reset Button
+        game_reset = GPIO.input(reset_button_in)
+        if (game_reset == False):
+            reset_game()
+            continue
 
-    while game_in_play:
-        try:
-            # Game Reset Button
-            game_reset = GPIO.input(reset_button_in)
-            if (game_reset == False):
-                reset_game()
-                continue
+        A_input_state = GPIO.input(team_A_trigger_in)
+        B_input_state = GPIO.input(team_B_trigger_in)
 
-            A_input_state = GPIO.input(team_A_trigger_in)
-            B_input_state = GPIO.input(team_B_trigger_in)
+        if (A_input_state == False):
+           print("YELLOW Team Scored!")
+           light(team_A_light_out)
+           notify_api_goal("YELLOW")
+           time.sleep(goal_wait_timeout)
 
-            if (A_input_state == False):
-               print("Team A Scored!")
-               light(team_A_light_out)
-               notify_api_goal("A")
-               time.sleep(goal_wait_timeout)
+        if (B_input_state == False):
+            print("BLACK Team Scored!")
+            light(team_B_light_out)
+            notify_api_goal("BLACK")
+            time.sleep(goal_wait_timeout)
 
-            if (B_input_state == False):
-                print("Team B Scored!")
-                light(team_B_light_out)
-                notify_api_goal("B")
-                time.sleep(goal_wait_timeout)
-
-	# Handle SIGINT
-        except KeyboardInterrupt:
-            GPIO.cleanup()
-            print("Bye")
-            sys.exit()
+    # Handle SIGINT
+    except KeyboardInterrupt:
+        GPIO.cleanup()
+        print("Bye")
+        sys.exit()
