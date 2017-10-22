@@ -7,6 +7,7 @@ import time, sys, uuid, requests
 goal_wait_timeout = 0.3 # set this below 1 for testing, 3 for real play
 game_uuid = ""
 debug_mode = False
+game_in_play = True
 
 ## Pin Config
 reset_button_in   = 4
