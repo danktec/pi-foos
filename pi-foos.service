@@ -1,9 +1,0 @@
-[Unit]
-Description=pi-foos
-
-[Service]
-ExecStart=/opt/pi-foos/game.py
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
