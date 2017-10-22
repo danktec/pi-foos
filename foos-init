@@ -46,7 +46,7 @@ start() {
   cd /home/pi/foos/
 
   # get new versions if they exit at the remote
-  sleep 5; # wait for network
+  sleep 20; # wait for network
   bash /home/pi/foos/update-check.sh
   
   # run the game in background
