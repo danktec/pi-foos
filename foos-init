@@ -53,7 +53,7 @@ start() {
   python game.py >> /var/log/$NAME.log 2>&1 &
   
   sleep 1;
-  echo `ps aux | grep game.py | awk '{print $2}'` > $PIDFILE
+  echo `ps aux | grep python | grep game.py | awk '{print $2}'` > $PIDFILE
   #jobs -p > $PIDFILE
   echo $NAME' started' >&2
 }
