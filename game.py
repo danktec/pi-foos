@@ -2,6 +2,7 @@
 
 import RPi.GPIO as GPIO
 import time, sys, uuid, requests
+import socket
 
 # Global Vars
 goal_wait_timeout = 2 # set this below 1 for testing, 3 for real play
@@ -17,7 +18,12 @@ team_B_light_out  = 23
 
 # Stats Server
 remote_api_url = "http://foos.works:8080/log/"
-remote_api_key = "777aaa"
+
+# Get local IP
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+s.connect(("8.8.8.8", 80))
+local_ip = s.getsockname()[0]
+s.close()
 
 # GPIO Pin Setup
 GPIO.setmode(GPIO.BCM)
@@ -39,7 +45,7 @@ def notify_api_goal(team):
     print("UUID: {}".format("xxx"))
 
     # POST to api
-    data = { "api_key": remote_api_key, "team": format(team), "event_type": "goal"  }
+    data = { "local_ip": local_ip, "team": format(team), "event_type": "goal"  }
     
     try:
         response = requests.post(remote_api_url, json=data)
