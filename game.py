@@ -56,6 +56,9 @@ def notify_api_goal(team):
 # Global Game Loop
 while True:
     try:
+        # Sleep delay prevents CPU pegging
+        time.sleep(0.01)    
+        
         # Game Reset Button
         game_reset = GPIO.input(reset_button_in)
         if (game_reset == False):
